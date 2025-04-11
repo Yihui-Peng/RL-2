@@ -9,8 +9,8 @@ from ShortCutAgents import ExpectedSARSAAgent
 from ShortCutAgents import nStepSARSAAgent
 from ShortCutEnvironment import ShortcutEnvironment
 
-
-def run_repetitions(env_class, agent_class, n_rep, n_episodes, alpha=0.1, epsilon=0.1):
+# adding **agent_kwargs to make the n-steps work
+def run_repetitions(env_class, agent_class, n_rep, n_episodes, alpha=0.1, epsilon=0.1, **agent_kwargs):
     all_returns = []
     for _ in range(n_rep):
         env = env_class()
@@ -18,7 +18,8 @@ def run_repetitions(env_class, agent_class, n_rep, n_episodes, alpha=0.1, epsilo
             n_actions=env.action_size(),
             n_states=env.state_size(),
             epsilon=epsilon,
-            alpha=alpha
+            alpha=alpha,
+            **agent_kwargs  # adding this line to make the n-steps work
         )
         returns = agent.train(env, n_episodes)
         all_returns.append(returns)
@@ -186,7 +187,7 @@ def windy_experiments():
 # n_step_agent = nStepSARSAAgent(
 #     n_actions=env.action_size(),
 #     n_states=env.state_size(),
-#     n=5,  # Example n=5
+#     n=5,
 #     epsilon=0.1,
 #     alpha=0.1
 # )
@@ -215,12 +216,16 @@ def windy_experiments():
 n_values = [1, 2, 5, 10, 25]
 alpha = 0.1
 n_step_curves = []
+env = ShortcutEnvironment()
 
 for n in n_values:
     returns = run_repetitions(
-        # some code here111111111111111111111111111111111111111111111111
+        ShortcutEnvironment,
+        nStepSARSAAgent,
         n_rep=100,
-        n_episodes=1000
+        n_episodes=1000,
+        alpha=alpha,
+        n=n    # adding this line to make the n-steps work
     )
     avg_returns = np.mean(returns, axis=0)
     n_step_curves.append(avg_returns)
