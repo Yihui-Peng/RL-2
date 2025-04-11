@@ -118,44 +118,45 @@ def plot_greedy_path(grid, title, filename):
 
 
 
-#----------------------------------------------------------------------
-# 1
-# Single experiment with 10000 episodes
-# to generate the plot for the Q-learning agent in a deterministic environment
-env = ShortcutEnvironment()
-agent = QLearningAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
-returns = agent.train(env, 10000)
-grid = capture_render_greedy(env, agent.Q)
-plot_greedy_path(grid, "Q-Learning Greedy Path (Deterministic Environment)", "Q_learning_greedy_path.png")
-
-# # Q-Learning, Testing different alpha values-------------------------
-# alphas = [0.01, 0.1, 0.5, 0.9]
-# n_rep = 100
-# n_episodes = 1000
-# alpha_curves = []
-# for alpha in alphas:
-#     all_returns = run_repetitions(ShortcutEnvironment, QLearningAgent, n_rep, n_episodes, alpha=alpha)
-#     avg_returns = np.mean(all_returns, axis=0)
-#     alpha_curves.append(avg_returns)
-
-# plot_learning_curves(
-#     alpha_curves,
-#     'Q-Learning with Different Alpha Values',
-#     labels=[f'alpha={a}' for a in alphas],
-#     smooth_window=10
-# )
+# #----------------------------------------------------------------------
+# # 1
+# # Single experiment with 10000 episodes
+# # to generate the plot for the Q-learning agent in a deterministic environment
+# env = ShortcutEnvironment()
+# agent = QLearningAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
+# returns = agent.train(env, 10000)
+# grid = capture_render_greedy(env, agent.Q)
+# plot_greedy_path(grid, "Q-Learning Greedy Path (Deterministic Environment)", "Q_learning_greedy_path.png")
 
 
+# Q-Learning, Testing different alpha values-------------------------
+alphas = [0.01, 0.1, 0.5, 0.9]
+n_rep = 100
+n_episodes = 1000
+alpha_curves = []
+for alpha in alphas:
+    all_returns = run_repetitions(ShortcutEnvironment, QLearningAgent, n_rep, n_episodes, alpha=alpha)
+    avg_returns = np.mean(all_returns, axis=0)
+    alpha_curves.append(avg_returns)
 
-#----------------------------------------------------------------------
-# 2
-# Single SARSA experiment with 10,000 episodes
-# to generate the plot for the SARSA agent in a deterministic environment
-env = ShortcutEnvironment()
-sarsa_agent = SARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
-sarsa_returns = sarsa_agent.train(env, 10000)
-grid = capture_render_greedy(env, sarsa_agent.Q)
-plot_greedy_path(grid, "SARSA Greedy Path (Deterministic Environment)", "SARSA_greedy_path.png")
+plot_learning_curves(
+    alpha_curves,
+    'Q-Learning with Different Alpha Values',
+    labels=[f'alpha={a}' for a in alphas],
+    smooth_window=10
+)
+
+
+
+# #----------------------------------------------------------------------
+# # 2
+# # Single SARSA experiment with 10,000 episodes
+# # to generate the plot for the SARSA agent in a deterministic environment
+# env = ShortcutEnvironment()
+# sarsa_agent = SARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
+# sarsa_returns = sarsa_agent.train(env, 10000)
+# grid = capture_render_greedy(env, sarsa_agent.Q)
+# plot_greedy_path(grid, "SARSA Greedy Path (Deterministic Environment)", "SARSA_greedy_path.png")
 
 
 # # Compare with Q-learning results from part 1b----------------------
@@ -189,20 +190,20 @@ plot_greedy_path(grid, "SARSA Greedy Path (Deterministic Environment)", "SARSA_g
 # )
 
 
-#-----------------------------------------------------------------------------------------------------------
-# 3
-# Stochastic Environment， Q-learning , SARSA
-windy_env = WindyShortcutEnvironment()
-q_agent = QLearningAgent(windy_env.action_size(), windy_env.state_size(), epsilon=0.1, alpha=0.1)
-q_returns = q_agent.train(windy_env, 10000)
-grid = capture_render_greedy(windy_env, q_agent.Q)
-plot_greedy_path(grid, "Q-Learning Greedy Path (Stochastic Environment)", "Q_learning_stochastic_path.png")
+# #-----------------------------------------------------------------------------------------------------------
+# # 3
+# # Stochastic Environment， Q-learning , SARSA
+# windy_env = WindyShortcutEnvironment()
+# q_agent = QLearningAgent(windy_env.action_size(), windy_env.state_size(), epsilon=0.1, alpha=0.1)
+# q_returns = q_agent.train(windy_env, 10000)
+# grid = capture_render_greedy(windy_env, q_agent.Q)
+# plot_greedy_path(grid, "Q-Learning Greedy Path (Stochastic Environment)", "Q_learning_stochastic_path.png")
 
-windy_env = WindyShortcutEnvironment()
-sarsa_agent = SARSAAgent(windy_env.action_size(), windy_env.state_size(), epsilon=0.1, alpha=0.1)
-sarsa_returns = sarsa_agent.train(windy_env, 10000)
-grid = capture_render_greedy(windy_env, sarsa_agent.Q)
-plot_greedy_path(grid, "SARSA Greedy Path (Stochastic Environment)", "SARSA_stochastic_path.png")
+# windy_env = WindyShortcutEnvironment()
+# sarsa_agent = SARSAAgent(windy_env.action_size(), windy_env.state_size(), epsilon=0.1, alpha=0.1)
+# sarsa_returns = sarsa_agent.train(windy_env, 10000)
+# grid = capture_render_greedy(windy_env, sarsa_agent.Q)
+# plot_greedy_path(grid, "SARSA Greedy Path (Stochastic Environment)", "SARSA_stochastic_path.png")
 
 
 
@@ -211,11 +212,11 @@ plot_greedy_path(grid, "SARSA Greedy Path (Stochastic Environment)", "SARSA_stoc
 # # ---------------------------------------------------------------------------------------
 # # 4
 # # Single Expected SARSA experiment with 10,000 episodes
-env = ShortcutEnvironment()
-expected_sarsa_agent = ExpectedSARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
-expected_returns = expected_sarsa_agent.train(env, 10000)
-grid = capture_render_greedy(env, expected_sarsa_agent.Q)
-plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)", "Expected_SARSA_greedy_path.png")
+# env = ShortcutEnvironment()
+# expected_sarsa_agent = ExpectedSARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
+# expected_returns = expected_sarsa_agent.train(env, 10000)
+# grid = capture_render_greedy(env, expected_sarsa_agent.Q)
+# plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)", "Expected_SARSA_greedy_path.png")
 
 
 # # Plot comparison with Q-Learning and SARSA
@@ -310,15 +311,13 @@ plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)",
 # # # 6
 # # # Comparison
 # def generate_comparison_learning_curves():
-#     best_alpha = 0.1
-#     best_n = 5
 
 #     q_returns = run_repetitions(
 #         ShortcutEnvironment, 
 #         QLearningAgent, 
 #         n_rep=100, 
 #         n_episodes=1000, 
-#         alpha=best_alpha
+#         alpha=0.9
 #     )
 #     q_avg = np.mean(q_returns, axis=0)
 
@@ -327,7 +326,7 @@ plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)",
 #         SARSAAgent, 
 #         n_rep=100, 
 #         n_episodes=1000, 
-#         alpha=best_alpha
+#         alpha=0.5
 #     )
 #     sarsa_avg = np.mean(sarsa_returns, axis=0)
 
@@ -336,7 +335,7 @@ plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)",
 #         ExpectedSARSAAgent, 
 #         n_rep=100, 
 #         n_episodes=1000, 
-#         alpha=best_alpha
+#         alpha=0.9
 #     )
 #     expected_avg = np.mean(expected_returns, axis=0)
 
@@ -345,8 +344,8 @@ plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)",
 #         nStepSARSAAgent, 
 #         n_rep=100, 
 #         n_episodes=1000, 
-#         alpha=best_alpha, 
-#         n=best_n
+#         alpha=0.1, 
+#         n=1
 #     )
 #     n_step_avg = np.mean(n_step_returns, axis=0)
 
@@ -354,10 +353,10 @@ plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)",
 #         [q_avg, sarsa_avg, expected_avg, n_step_avg],
 #         title='Comparison of Best Performing Models',
 #         labels=[
-#             f'Q-Learning (α={best_alpha})', 
-#             f'SARSA (α={best_alpha})', 
-#             f'Expected SARSA (α={best_alpha})', 
-#             f'n-step SARSA (n={best_n})'
+#             f'Q-Learning (α=0.9)', 
+#             f'SARSA (α=0.5)', 
+#             f'Expected SARSA (α=0.9)', 
+#             f'n-step SARSA (n=1)'
 #         ],
 #         smooth_window=10
 #     )
