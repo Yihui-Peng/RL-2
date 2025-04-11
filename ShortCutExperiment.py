@@ -1,5 +1,7 @@
 # Write your experiments in here! You can use the plotting helper functions from the previous assignment if you want.
 
+import io
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from ShortCutAgents import QLearningAgent
@@ -62,26 +64,66 @@ def windy_experiments():
 # windy_experiments()
 
 
-# #----------------------------------------------------------------------
-# # Single experiment with 10000 episodes
-# env = ShortcutEnvironment()
-# agent = QLearningAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
-# returns = agent.train(env, 10000)
-# env.render_greedy(agent.Q)
-
-# # Multiple repetitions (100 reps, 1000 episodes)
-# n_rep = 100
-# n_episodes = 1000
-# all_returns = run_repetitions(ShortcutEnvironment, QLearningAgent, n_rep, n_episodes)
-# avg_returns = np.mean(all_returns, axis=0)
-# plot_learning_curves([avg_returns], 'Average Learning Curve (Q-Learning)', smooth_window=10)
+def capture_render_greedy(env, Q):
+    old_stdout = sys.stdout
+    sys.stdout = buffer = io.StringIO()
+    
+    env.render_greedy(Q)
+    sys.stdout = old_stdout
+    
+    grid_str = buffer.getvalue()
+    grid_lines = [line.strip().split() for line in grid_str.split('\n') if line.strip()]
+    grid = np.array(grid_lines)
+    return grid
 
 
-# # Testing different alpha values
+def plot_greedy_path(grid, title, filename):
+    plt.figure(figsize=(8, 8))
+    ax = plt.gca()
+    
+    ax.set_xticks([])
+    ax.set_yticks([])
+    
+    for i in range(grid.shape[0] + 1):
+        ax.axhline(i - 0.5, color='black', lw=1)
+    for j in range(grid.shape[1] + 1):
+        ax.axvline(j - 0.5, color='black', lw=1)
+    
+    for y in range(grid.shape[0]):
+        for x in range(grid.shape[1]):
+            cell = grid[y, x]
+            color = 'black'
+            if cell == 'C':
+                color = 'red'
+            elif cell == 'G':
+                color = 'green'
+            elif cell in ['↑', '↓', '←', '→']:
+                color = 'blue'
+            ax.text(x, y, cell, ha='center', va='center', color=color, fontsize=12)
+    
+    ax.text(2, 2, 'S', ha='center', va='center', color='blue', fontsize=14)
+    ax.text(9, 2, 'S', ha='center', va='center', color='blue', fontsize=14)
+    
+    plt.title(title)
+    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+
+#----------------------------------------------------------------------
+# 1
+# Single experiment with 10000 episodes
+# to generate the plot for the Q-learning agent in a deterministic environment
+env = ShortcutEnvironment()
+agent = QLearningAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
+returns = agent.train(env, 10000)
+grid = capture_render_greedy(env, agent.Q)
+plot_greedy_path(grid, "Q-Learning Greedy Path (Deterministic Environment)", "Q_learning_greedy_path.png")
+
+# # Q-Learning, Testing different alpha values-------------------------
 # alphas = [0.01, 0.1, 0.5, 0.9]
 # n_rep = 100
 # n_episodes = 1000
-
 # alpha_curves = []
 # for alpha in alphas:
 #     all_returns = run_repetitions(ShortcutEnvironment, QLearningAgent, n_rep, n_episodes, alpha=alpha)
@@ -97,21 +139,20 @@ def windy_experiments():
 
 
 
-# #----------------------------------------------------------------------
-# # Single SARSA experiment with 10,000 episodes
-# env = ShortcutEnvironment()
-# sarsa_agent = SARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
-# sarsa_returns = sarsa_agent.train(env, 10000)
-# env.render_greedy(sarsa_agent.Q)
+#----------------------------------------------------------------------
+# 2
+# Single SARSA experiment with 10,000 episodes
+# to generate the plot for the SARSA agent in a deterministic environment
+env = ShortcutEnvironment()
+sarsa_agent = SARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
+sarsa_returns = sarsa_agent.train(env, 10000)
+grid = capture_render_greedy(env, sarsa_agent.Q)
+plot_greedy_path(grid, "SARSA Greedy Path (Deterministic Environment)", "SARSA_greedy_path.png")
 
-# # Multiple repetitions for SARSA
-# sarsa_returns = run_repetitions(ShortcutEnvironment, SARSAAgent, n_rep=100, n_episodes=1000)
-# sarsa_avg = np.mean(sarsa_returns, axis=0)
 
-# # Compare with Q-learning results from part 1b
+# # Compare with Q-learning results from part 1b----------------------
 # q_learning_returns = run_repetitions(ShortcutEnvironment, QLearningAgent, n_rep=100, n_episodes=1000)
 # q_avg = np.mean(q_learning_returns, axis=0)
-
 # # Plot comparison
 # plot_learning_curves(
 #     [q_avg, sarsa_avg],
@@ -140,18 +181,34 @@ def windy_experiments():
 # )
 
 
+#-----------------------------------------------------------------------------------------------------------
+# 3
+# Stochastic Environment， Q-learning , SARSA
+windy_env = WindyShortcutEnvironment()
+q_agent = QLearningAgent(windy_env.action_size(), windy_env.state_size(), epsilon=0.1, alpha=0.1)
+q_returns = q_agent.train(windy_env, 10000)
+grid = capture_render_greedy(windy_env, q_agent.Q)
+plot_greedy_path(grid, "Q-Learning Greedy Path (Stochastic Environment)", "Q_learning_stochastic_path.png")
+
+windy_env = WindyShortcutEnvironment()
+sarsa_agent = SARSAAgent(windy_env.action_size(), windy_env.state_size(), epsilon=0.1, alpha=0.1)
+sarsa_returns = sarsa_agent.train(windy_env, 10000)
+grid = capture_render_greedy(windy_env, sarsa_agent.Q)
+plot_greedy_path(grid, "SARSA Greedy Path (Stochastic Environment)", "SARSA_stochastic_path.png")
 
 
-# # ----------------------------------------------------------------------
+
+
+
+# # ---------------------------------------------------------------------------------------
+# # 4
 # # Single Expected SARSA experiment with 10,000 episodes
-# env = ShortcutEnvironment()
-# expected_sarsa_agent = ExpectedSARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
-# expected_returns = expected_sarsa_agent.train(env, 10000)
-# env.render_greedy(expected_sarsa_agent.Q)
+env = ShortcutEnvironment()
+expected_sarsa_agent = ExpectedSARSAAgent(env.action_size(), env.state_size(), epsilon=0.1, alpha=0.1)
+expected_returns = expected_sarsa_agent.train(env, 10000)
+grid = capture_render_greedy(env, expected_sarsa_agent.Q)
+plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)", "Expected_SARSA_greedy_path.png")
 
-# # Multiple repetitions for Expected SARSA
-# expected_returns = run_repetitions(ShortcutEnvironment, ExpectedSARSAAgent, n_rep=100, n_episodes=1000)
-# expected_avg = np.mean(expected_returns, axis=0)
 
 # # Plot comparison with Q-Learning and SARSA
 # plot_learning_curves(
@@ -182,6 +239,7 @@ def windy_experiments():
 
 
 # # ----------------------------------------------------------------------
+# # 5
 # # Single n-step SARSA experiment with 10,000 episodes
 # env = ShortcutEnvironment()
 # n_step_agent = nStepSARSAAgent(
@@ -212,28 +270,89 @@ def windy_experiments():
 # )
 
 
-# Test n-step SARSA with different alpha values
-n_values = [1, 2, 5, 10, 25]
-alpha = 0.1
-n_step_curves = []
-env = ShortcutEnvironment()
+# # Test n-step SARSA with different alpha values
+# n_values = [1, 2, 5, 10, 25]
+# alpha = 0.1
+# n_step_curves = []
+# env = ShortcutEnvironment()
 
-for n in n_values:
-    returns = run_repetitions(
-        ShortcutEnvironment,
-        nStepSARSAAgent,
-        n_rep=100,
-        n_episodes=1000,
-        alpha=alpha,
-        n=n    # adding this line to make the n-steps work
+# for n in n_values:
+#     returns = run_repetitions(
+#         ShortcutEnvironment,
+#         nStepSARSAAgent,
+#         n_rep=100,
+#         n_episodes=1000,
+#         alpha=alpha,
+#         n=n    # adding this line to make the n-steps work
+#     )
+#     avg_returns = np.mean(returns, axis=0)
+#     n_step_curves.append(avg_returns)
+
+# # Plot n-step comparison
+# plot_learning_curves(
+#     n_step_curves,
+#     'n-Step SARSA with Different n Values',
+#     labels=[f'n={n}' for n in n_values],
+#     smooth_window=10
+# )
+
+
+
+# # ----------------------------------------------------------------------------------------
+# # 6
+# # Comparison
+def generate_comparison_learning_curves():
+    best_alpha = 0.1
+    best_n = 5
+
+    q_returns = run_repetitions(
+        ShortcutEnvironment, 
+        QLearningAgent, 
+        n_rep=100, 
+        n_episodes=1000, 
+        alpha=best_alpha
     )
-    avg_returns = np.mean(returns, axis=0)
-    n_step_curves.append(avg_returns)
+    q_avg = np.mean(q_returns, axis=0)
 
-# Plot n-step comparison
-plot_learning_curves(
-    n_step_curves,
-    'n-Step SARSA with Different n Values',
-    labels=[f'n={n}' for n in n_values],
-    smooth_window=10
-)
+    sarsa_returns = run_repetitions(
+        ShortcutEnvironment, 
+        SARSAAgent, 
+        n_rep=100, 
+        n_episodes=1000, 
+        alpha=best_alpha
+    )
+    sarsa_avg = np.mean(sarsa_returns, axis=0)
+
+    expected_returns = run_repetitions(
+        ShortcutEnvironment, 
+        ExpectedSARSAAgent, 
+        n_rep=100, 
+        n_episodes=1000, 
+        alpha=best_alpha
+    )
+    expected_avg = np.mean(expected_returns, axis=0)
+
+    n_step_returns = run_repetitions(
+        ShortcutEnvironment, 
+        nStepSARSAAgent, 
+        n_rep=100, 
+        n_episodes=1000, 
+        alpha=best_alpha, 
+        n=best_n
+    )
+    n_step_avg = np.mean(n_step_returns, axis=0)
+
+    plot_learning_curves(
+        [q_avg, sarsa_avg, expected_avg, n_step_avg],
+        title='Comparison of Best Performing Models',
+        labels=[
+            f'Q-Learning (α={best_alpha})', 
+            f'SARSA (α={best_alpha})', 
+            f'Expected SARSA (α={best_alpha})', 
+            f'n-step SARSA (n={best_n})'
+        ],
+        smooth_window=10
+    )
+    plt.close()
+
+generate_comparison_learning_curves()
