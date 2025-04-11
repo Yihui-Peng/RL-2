@@ -1,6 +1,7 @@
 # Write your experiments in here! You can use the plotting helper functions from the previous assignment if you want.
 
 import io
+import re
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -63,6 +64,9 @@ def windy_experiments():
 # # Run experiments
 # windy_experiments()
 
+def filter_ansi_escape(text):
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
 
 def capture_render_greedy(env, Q):
     old_stdout = sys.stdout
@@ -70,9 +74,8 @@ def capture_render_greedy(env, Q):
     
     env.render_greedy(Q)
     sys.stdout = old_stdout
-    
-    grid_str = buffer.getvalue()
-    grid_lines = [line.strip().split() for line in grid_str.split('\n') if line.strip()]
+    cleaned_text = filter_ansi_escape(buffer.getvalue())
+    grid_lines = [line.strip().split() for line in cleaned_text.split('\n') if line.strip()]
     grid = np.array(grid_lines)
     return grid
 
@@ -93,17 +96,22 @@ def plot_greedy_path(grid, title, filename):
         for x in range(grid.shape[1]):
             cell = grid[y, x]
             color = 'black'
-            if cell == 'C':
+            if cell in ['↑', '↓', '←', '→']:
+                color = 'blue'
+            elif cell == 'C':
                 color = 'red'
+                cell = 'C'
             elif cell == 'G':
                 color = 'green'
-            elif cell in ['↑', '↓', '←', '→']:
-                color = 'blue'
+                cell = 'G'
+            else:
+                cell = ''
             ax.text(x, y, cell, ha='center', va='center', color=color, fontsize=12)
     
     ax.text(2, 2, 'S', ha='center', va='center', color='blue', fontsize=14)
     ax.text(9, 2, 'S', ha='center', va='center', color='blue', fontsize=14)
-    
+    ax.text(8, 8, 'G', ha='center', va='center', color='green', fontsize=14)
+
     plt.title(title)
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.close()
@@ -298,61 +306,61 @@ plot_greedy_path(grid, "Expected SARSA Greedy Path (Deterministic Environment)",
 
 
 
-# # ----------------------------------------------------------------------------------------
-# # 6
-# # Comparison
-def generate_comparison_learning_curves():
-    best_alpha = 0.1
-    best_n = 5
+# # # ----------------------------------------------------------------------------------------
+# # # 6
+# # # Comparison
+# def generate_comparison_learning_curves():
+#     best_alpha = 0.1
+#     best_n = 5
 
-    q_returns = run_repetitions(
-        ShortcutEnvironment, 
-        QLearningAgent, 
-        n_rep=100, 
-        n_episodes=1000, 
-        alpha=best_alpha
-    )
-    q_avg = np.mean(q_returns, axis=0)
+#     q_returns = run_repetitions(
+#         ShortcutEnvironment, 
+#         QLearningAgent, 
+#         n_rep=100, 
+#         n_episodes=1000, 
+#         alpha=best_alpha
+#     )
+#     q_avg = np.mean(q_returns, axis=0)
 
-    sarsa_returns = run_repetitions(
-        ShortcutEnvironment, 
-        SARSAAgent, 
-        n_rep=100, 
-        n_episodes=1000, 
-        alpha=best_alpha
-    )
-    sarsa_avg = np.mean(sarsa_returns, axis=0)
+#     sarsa_returns = run_repetitions(
+#         ShortcutEnvironment, 
+#         SARSAAgent, 
+#         n_rep=100, 
+#         n_episodes=1000, 
+#         alpha=best_alpha
+#     )
+#     sarsa_avg = np.mean(sarsa_returns, axis=0)
 
-    expected_returns = run_repetitions(
-        ShortcutEnvironment, 
-        ExpectedSARSAAgent, 
-        n_rep=100, 
-        n_episodes=1000, 
-        alpha=best_alpha
-    )
-    expected_avg = np.mean(expected_returns, axis=0)
+#     expected_returns = run_repetitions(
+#         ShortcutEnvironment, 
+#         ExpectedSARSAAgent, 
+#         n_rep=100, 
+#         n_episodes=1000, 
+#         alpha=best_alpha
+#     )
+#     expected_avg = np.mean(expected_returns, axis=0)
 
-    n_step_returns = run_repetitions(
-        ShortcutEnvironment, 
-        nStepSARSAAgent, 
-        n_rep=100, 
-        n_episodes=1000, 
-        alpha=best_alpha, 
-        n=best_n
-    )
-    n_step_avg = np.mean(n_step_returns, axis=0)
+#     n_step_returns = run_repetitions(
+#         ShortcutEnvironment, 
+#         nStepSARSAAgent, 
+#         n_rep=100, 
+#         n_episodes=1000, 
+#         alpha=best_alpha, 
+#         n=best_n
+#     )
+#     n_step_avg = np.mean(n_step_returns, axis=0)
 
-    plot_learning_curves(
-        [q_avg, sarsa_avg, expected_avg, n_step_avg],
-        title='Comparison of Best Performing Models',
-        labels=[
-            f'Q-Learning (α={best_alpha})', 
-            f'SARSA (α={best_alpha})', 
-            f'Expected SARSA (α={best_alpha})', 
-            f'n-step SARSA (n={best_n})'
-        ],
-        smooth_window=10
-    )
-    plt.close()
+#     plot_learning_curves(
+#         [q_avg, sarsa_avg, expected_avg, n_step_avg],
+#         title='Comparison of Best Performing Models',
+#         labels=[
+#             f'Q-Learning (α={best_alpha})', 
+#             f'SARSA (α={best_alpha})', 
+#             f'Expected SARSA (α={best_alpha})', 
+#             f'n-step SARSA (n={best_n})'
+#         ],
+#         smooth_window=10
+#     )
+#     plt.close()
 
-generate_comparison_learning_curves()
+# generate_comparison_learning_curves()
