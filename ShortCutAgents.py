@@ -23,6 +23,10 @@ class QLearningAgent(object):
             q_values = self.Q[state, :]
             max_q = np.max(q_values)
             max_actions = np.where(q_values == max_q)[0]
+            if 3 in max_actions:
+                return 3
+            elif 1 in max_actions:
+                return 1
             return np.random.choice(max_actions)
         
 
@@ -43,7 +47,9 @@ class QLearningAgent(object):
         # episode_returns = []
         # return episode_returns
         episode_returns = []
-        for _ in range(n_episodes):
+        initial_epsilon = self.epsilon
+        for episode in range(n_episodes):
+            self.epsilon = max(0.01, initial_epsilon * (0.9 ** (episode / (n_episodes // 10))))
             state = env.reset()
             done = False
             total_reward = 0
@@ -81,15 +87,16 @@ class SARSAAgent(object):
             q_values = self.Q[state, :]
             max_q = np.max(q_values)
             max_actions = np.where(q_values == max_q)[0]
+            if 3 in max_actions:
+                return 3
+            elif 1 in max_actions:
+                return 1
             return np.random.choice(max_actions)
         
         
     def update(self, state, action, reward, next_state, next_action, done): # Augment arguments if necessary
         # TO DO: Implement SARSA update
-        if done:
-            target = reward
-        else:
-            target = reward + self.gamma * self.Q[next_state, next_action]
+        target = reward if done else reward + self.gamma * self.Q[next_state, next_action]
         self.Q[state, action] += self.alpha * (target - self.Q[state, action])
 
 
@@ -99,23 +106,23 @@ class SARSAAgent(object):
         # episode_returns = []
         # return episode_returns
         episode_returns = []
-        for _ in range(n_episodes):
+        initial_epsilon = self.epsilon
+        for episode in range(n_episodes):
+            self.epsilon = max(0.01, initial_epsilon * (0.9 ** (episode / (n_episodes // 10))))
             state = env.reset()
+            action = self.select_action(state)
             done = False
             total_reward = 0
-            action = self.select_action(state)
             while not done:
                 reward = env.step(action)
                 next_state = env.state()
                 done = env.done()
                 next_action = self.select_action(next_state) if not done else None
                 self.update(state, action, reward, next_state, next_action, done)
+                state, action = next_state, next_action
                 total_reward += reward
-                state = next_state
-                action = next_action if not done else None
             episode_returns.append(total_reward)
         return episode_returns
-    
 
 class ExpectedSARSAAgent(object):
 
@@ -138,6 +145,10 @@ class ExpectedSARSAAgent(object):
             q_values = self.Q[state, :]
             max_q = np.max(q_values)
             max_actions = np.where(q_values == max_q)[0]
+            if 3 in max_actions:  # 向右优先
+                return 3
+            elif 1 in max_actions:  # 向下次优先
+                return 1
             return np.random.choice(max_actions)
         
     def update(self, state, action, reward, next_state, done): # Augment arguments if necessary
@@ -146,16 +157,13 @@ class ExpectedSARSAAgent(object):
         if done:
             target = reward
         else:
-            # Compute expected Q-value for next_state under ε-greedy policy
             q_next = self.Q[next_state, :]
             max_action = np.argmax(q_next)
             prob_non_greedy = self.epsilon / self.n_actions
             prob_greedy = (1 - self.epsilon) + prob_non_greedy
-            expected_q = np.sum(
-                q_next * (np.ones(self.n_actions) * prob_non_greedy))
+            expected_q = np.sum(q_next * prob_non_greedy)
             expected_q += q_next[max_action] * (prob_greedy - prob_non_greedy)
             target = reward + self.gamma * expected_q
-        # Update Q-value
         self.Q[state, action] += self.alpha * (target - current_q)
 
     def train(self, env, n_episodes):
@@ -164,7 +172,9 @@ class ExpectedSARSAAgent(object):
         # episode_returns = []
         # return episode_returns 
         episode_returns = []
-        for _ in range(n_episodes):
+        initial_epsilon = self.epsilon
+        for episode in range(n_episodes):
+            self.epsilon = max(0.01, initial_epsilon * (0.9 ** (episode / (n_episodes // 10))))
             state = env.reset()
             done = False
             total_reward = 0
@@ -177,7 +187,7 @@ class ExpectedSARSAAgent(object):
                 total_reward += reward
                 state = next_state
             episode_returns.append(total_reward)
-        return episode_returns   
+        return episode_returns 
 
 
 class nStepSARSAAgent(object):
@@ -202,6 +212,10 @@ class nStepSARSAAgent(object):
             q_values = self.Q[state, :]
             max_q = np.max(q_values)
             max_actions = np.where(q_values == max_q)[0]
+            if 3 in max_actions:
+                return 3
+            elif 1 in max_actions:
+                return 1
             return np.random.choice(max_actions)
         
     def update(self, states, actions, rewards, done): # Augment arguments if necessary
@@ -211,8 +225,10 @@ class nStepSARSAAgent(object):
     def train(self, env, n_episodes):
         # TO DO: Implement the agent loop that trains for n_episodes. 
         # Return a vector with the the cumulative reward (=return) per episode
+        initial_epsilon = self.epsilon
         episode_returns = []
-        for _ in range(n_episodes):
+        for episode in range(n_episodes):
+            self.epsilon = max(0.01, initial_epsilon * (0.9 ** (episode / (n_episodes // 10))))
             state = env.reset()
             done = False
             total_reward = 0
@@ -223,7 +239,6 @@ class nStepSARSAAgent(object):
                 next_state = env.state()
                 done = env.done()
                 buffer.append((state, action, reward, next_state, done))
-                # Perform updates if buffer has enough transitions
                 if len(buffer) == self.n + 1:
                     s_tau, a_tau, _, _, _ = buffer[0]
                     G = 0
@@ -234,7 +249,6 @@ class nStepSARSAAgent(object):
                     self.Q[s_tau, a_tau] += self.alpha * (G - self.Q[s_tau, a_tau])
                 total_reward += reward
                 state = next_state
-            # Process remaining transitions after episode ends
             for i in range(len(buffer)):
                 s_tau, a_tau, _, _, _ = buffer[i]
                 G = 0
@@ -245,7 +259,7 @@ class nStepSARSAAgent(object):
                     G += (self.gamma ** self.n) * self.Q[s_next, a_next]
                 self.Q[s_tau, a_tau] += self.alpha * (G - self.Q[s_tau, a_tau])
             episode_returns.append(total_reward)
-        return episode_returns 
+        return episode_returns
     
     
     
